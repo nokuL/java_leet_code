@@ -1,6 +1,7 @@
 import java.util.LinkedList;
 
 public class AddTwoSums {
+
     public static LinkedList<Integer> addTwoSums(LinkedList<Integer> integerLinkedList1, LinkedList<Integer> linkedList2) throws NumberFormatException {
 
         LinkedList<Integer> linkedListResult = new LinkedList<>();
