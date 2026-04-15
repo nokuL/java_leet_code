@@ -1,0 +1,120 @@
+Variable Size Sliding Window
+Deep Dive — when k is not given and the window grows and shrinks by condition
+
+The Thought Pattern (Before Writing Anything)
+Ask yourself these 3 questions when you see a variable window problem:
+
+1
+What is my window valid condition?
+→ when do I keep expanding? e.g. "no duplicates", "sum ≤ k", "all same char"
+2
+What triggers shrinking?
+→ the moment the condition breaks, move left pointer to fix it
+3
+What do I record per valid window?
+→ its length? its start index? a count?
+Core insight — right pointer always moves forward one step at a time. Left pointer only moves when the window becomes invalid. You never reset both pointers.
+
+The Mental Model
+Two pointers, left and right, both start at 0. right expands the window; left shrinks it from the left when needed.
+
+arr = [a, b, c, d, e, f]
+
+right expands →  →  →  →  →  →
+left only moves when condition breaks ↑
+
+The window at any moment = arr[left .. right]
+window size = right - left + 1
+The Generic Pseudocode
+VARIABLE SLIDING WINDOW TEMPLATE
+
+1. left = 0, right = 0
+   initialise your tracking structure
+   (a sum, a HashMap, a Set, a counter)
+
+2. Loop: right goes from 0 to arr.length - 1
+
+   a. ADD arr[right] into your window state
+
+   b. WHILE window is INVALID (condition broken):
+        REMOVE arr[left] from your window state
+        left++
+
+   c. At this point window is valid.
+      RECORD your answer:
+        → length = right - left + 1
+        → or update maxLen, count, etc.
+
+3. Return answer
+The while vs if choice: use while when the window might need multiple left shrinks to become valid again. Use if only when one shrink is always enough (rare).
+
+The Thought Steps Mapped Out
+STEP 1 — right enters and adds to window state
+
+STEP 2 — check condition
+   ┌──────────────────────────────────────────────┐
+   │  if window VALID                             │
+   │    → record result (max length, count, etc.) │
+   │                                              │
+   │  if window INVALID                           │
+   │    → remove arr[left] from state             │
+   │    → left++                                  │
+   │    → repeat until valid again                │
+   └──────────────────────────────────────────────┘
+
+STEP 3 — right++ (loop handles this)
+
+STEP 4 — return answer
+Concrete Example — Longest Substring Without Repeating Characters
+Input: s = "abcabcbb"   Output: 3 (window "abc")
+
+Trace
+left=0, right=0, set={}, maxLen=0
+
+right=0 → add 'a' → set={a} → valid → maxLen=max(0,1)=1
+right=1 → add 'b' → set={a,b} → valid → maxLen=2
+right=2 → add 'c' → set={a,b,c} → valid → maxLen=3
+right=3 → add 'a' → INVALID (a already in set)
+→ remove arr[left=0]='a', left=1 → set={b,c,a} → valid → maxLen=3
+right=4 → add 'b' → INVALID
+→ remove arr[left=1]='b', left=2 → valid → maxLen=3
+right=5 → add 'c' → INVALID
+→ remove arr[left=2]='c', left=3 → valid → maxLen=3
+right=6 → add 'b' → INVALID
+→ remove arr[left=3]='a', left=4
+→ still invalid (b in set) → remove 'b', left=5 → valid → maxLen=3
+right=7 → add 'b' → INVALID → shrink → maxLen stays 3
+
+return 3 ✅
+What Changes Per Problem — The Only Variable Part
+Problem type	Condition for validity	What you track
+No repeating chars	all chars unique	HashSet of chars
+Max sum ≤ target	windowSum ≤ k	running integer sum
+At most k distinct chars	map.size() ≤ k	HashMap of char frequencies
+Longest subarray of 1s (can flip k 0s)	zeroCount ≤ k	integer counter of zeros in window
+Min window substring	all required chars covered	two frequency maps + formed counter
+The Two Rules to Never Forget
+Rule 1 — right never goes backwards. It only moves forward. If you find yourself resetting right, you've broken the pattern.
+
+Rule 2 — When you move left, you must undo the contribution of arr[left] from your state first, then increment. Order matters: remove → left++, never left++ → remove.
+
+Fixed vs Variable — Quick Comparison
+Fixed window	Variable window
+Window size	k is given, constant	not given, changes
+Right pointer	always moves by 1	always moves by 1
+Left pointer	always moves by 1 (i−k)	moves only when invalid
+Shrink trigger	window full (exactly k)	condition breaks
+Key structure	sum / freq array	HashSet / HashMap / counter
+Signal phrase	"every subarray of size k"	"longest / shortest subarray where…"
+Your Practice Checklist for This Pattern
+○
+Longest substring without repeating chars ← start here, uses a Set
+○
+Longest subarray with sum ≤ k ← uses integer sum
+○
+Longest substring with at most k distinct chars ← uses HashMap
+○
+Max consecutive 1s III (flip k zeros) ← uses zero counter
+○
+Minimum window substring ← hardest, uses two maps + formed counter
+Once you can do all five from memory, variable window is locked in.

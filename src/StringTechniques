@@ -1,0 +1,136 @@
+## Algorithm Techniques for Intermediate Java Interview
+
+These are the core patterns you need. Every string/array problem maps to one of these.
+
+---
+
+## 1. Sliding Window
+**When to use:** Contiguous subarray/substring problems — max, min, sum, or condition within a window.
+
+**Two flavours:**
+- **Fixed window** — window size is given (e.g. "find max sum of k elements")
+- **Variable window** — window grows/shrinks based on a condition (e.g. "longest substring without repeating chars")
+
+**Signal words:** *longest, shortest, maximum, minimum, contains, at most k, subarray/substring*
+
+---
+
+## 2. Two Pointers
+**When to use:** Sorted arrays, pairs that sum to a target, palindrome checks, removing duplicates.
+
+**Variations:**
+- **Opposite ends** — left starts at 0, right starts at end, they move toward each other
+- **Same direction (fast/slow)** — both start at 0, one moves faster (also called the runner technique)
+
+**Signal words:** *sorted array, pair/triplet sum, palindrome, remove duplicates, merge*
+
+---
+
+## 3. Prefix Sum
+**When to use:** Range sum queries, subarray sum equals target, counting subarrays.
+
+**Core idea:** Precompute cumulative sums so any range sum `[i..j]` = `prefix[j] - prefix[i-1]` in O(1).
+
+Often combined with a **HashMap** to find subarrays with a specific sum.
+
+**Signal words:** *subarray sum, range query, count subarrays equal to k*
+
+---
+
+## 4. HashMap / HashSet
+**When to use:** Frequency counting, finding duplicates, anagram detection, two-sum style problems.
+
+**Patterns:**
+- Count character frequency → compare maps
+- Store value → index mapping (Two Sum)
+- Use Set to track visited/seen elements
+
+**Signal words:** *contains duplicate, anagram, two sum, first unique, group by*
+
+---
+
+## 5. Kadane's Algorithm
+**When to use:** Maximum subarray sum — the classic dynamic programming on arrays.
+
+**Core idea:** At each index decide — extend the previous subarray or start fresh. Keep a running max.
+
+**Signal words:** *maximum subarray, largest sum contiguous*
+
+---
+
+## 6. Binary Search (on arrays)
+**When to use:** Sorted array, or when you can define a search space with a yes/no condition.
+
+**Variations:**
+- Classic — find a target value
+- Find first/last occurrence
+- Search in rotated sorted array
+- Binary search on answer (e.g. "minimum maximum")
+
+**Signal words:** *sorted, find position, rotated, minimum/maximum feasible value*
+
+---
+
+## 7. Backtracking
+**When to use:** Generate all combinations, permutations, or subsets. Explore and undo choices.
+
+**Core idea:** Choose → explore → unchoose. Build a decision tree and prune invalid paths early.
+
+**Signal words:** *all combinations, all permutations, generate, subsets, letter combinations*
+
+---
+
+## 8. Stack (Monotonic Stack)
+**When to use:** Next greater/smaller element, valid parentheses, histogram problems.
+
+**Core idea:** Maintain a stack that stays in increasing or decreasing order. Pop when the condition breaks.
+
+**Signal words:** *next greater element, valid parentheses, largest rectangle, daily temperatures*
+
+---
+
+## 9. String-Specific Techniques
+
+| Technique | Use Case |
+|---|---|
+| **Character array / frequency array** | Anagrams, permutations in string |
+| **Two pointers on string** | Reverse words, palindrome, remove spaces |
+| **StringBuilder** | Building results efficiently (avoid O(n²) string concat) |
+| **Split / Trim / Replace** | Parsing and cleaning input strings |
+| **Sorting characters** | Anagram grouping (sort both strings, compare) |
+
+---
+
+## How These Map to Common Problems
+
+| Problem | Technique |
+|---|---|
+| Longest substring without repeating chars | Sliding Window + HashSet |
+| Two Sum | HashMap |
+| Maximum subarray | Kadane's |
+| Valid anagram | Frequency array / HashMap |
+| Container with most water | Two Pointers |
+| Find all permutations | Backtracking |
+| Subarray sum equals k | Prefix Sum + HashMap |
+| Next greater element | Monotonic Stack |
+| Search rotated sorted array | Binary Search |
+| Letter combinations of phone number | Backtracking |
+| Longest palindromic substring | Two Pointers (expand from center) |
+| Group anagrams | HashMap + Sort |
+
+---
+
+## The Decision Framework
+
+When you see a problem, ask yourself:
+
+1. Is it about a **contiguous subarray/substring**? → Sliding Window
+2. Is the array **sorted**, or about pairs? → Two Pointers
+3. Do I need to **count or look up** something fast? → HashMap/HashSet
+4. Is it about **range sums**? → Prefix Sum
+5. Do I need to **generate all possibilities**? → Backtracking
+6. Is there a **next greater/smaller** pattern? → Monotonic Stack
+7. Is the array **sorted and I need to find something**? → Binary Search
+8. Is it just **maximum sum subarray**? → Kadane's
+
+Master these 8 and you cover 90% of intermediate string/array interview questions.

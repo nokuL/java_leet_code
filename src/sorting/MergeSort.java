@@ -21,11 +21,6 @@ public class MergeSort {
             mergeSort(inputArrayA, mid +1 , end);
 
             merge(inputArrayA, start, mid, end);
-
-
-
-
-
     }
 
 

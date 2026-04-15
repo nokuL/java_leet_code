@@ -1,0 +1,150 @@
+## Fixed Size Sliding Window — Deep Dive
+
+---
+
+## The Thought Pattern (Before Writing Anything)
+
+Ask yourself these 3 questions when you see a fixed window problem:
+
+1. **What is my window size?** → k is always given
+2. **What am I tracking inside the window?** → a sum? a frequency? a max?
+3. **What am I computing per window?** → store it, compare it, return it?
+
+The core insight is — **instead of recalculating the whole window every time, you just remove what left and add what entered.**
+
+---
+
+## The Mental Model
+
+Imagine a frame of size k sliding across an array one step at a time.
+
+```
+arr = [2, 1, 5, 1, 3, 2],  k = 3
+
+Window 1: [2, 1, 5] | 1, 3, 2
+Window 2:  2, [1, 5, 1] | 3, 2
+Window 3:  2, 1, [5, 1, 3] | 2
+Window 4:  2, 1, 5, [1, 3, 2]
+```
+
+Each slide — **one element exits the left, one element enters the right.** You never recompute the whole window.
+
+---
+
+## The Generic Pseudocode
+
+```
+FIXED SLIDING WINDOW TEMPLATE
+
+1. Validate edge case — if array length < k, return / handle
+
+2. Bootstrap the first window
+   → process elements from index 0 to k-1
+   → compute your initial window result (sum, count, frequency etc)
+
+3. Record the result of the first window
+
+4. Slide the window from index k to end of array
+   → ADD the incoming element (index i)
+   → REMOVE the outgoing element (index i - k)
+   → UPDATE your result
+   → COMPARE or STORE the new result
+
+5. Return the answer
+```
+
+---
+
+## The Thought Steps Mapped Out
+
+```
+STEP 1 — Build first window (indices 0 to k-1)
+         You cannot slide yet, you need a full window first
+
+STEP 2 — Record window result
+         This is your baseline to compare against
+
+STEP 3 — Start sliding (index i = k, go to arr.length - 1)
+
+         Each iteration:
+         ┌─────────────────────────────────────────┐
+         │  incoming element = arr[i]               │
+         │  outgoing element = arr[i - k]           │
+         │                                          │
+         │  windowResult = windowResult             │
+         │                 + incoming               │
+         │                 - outgoing               │
+         │                                          │
+         │  update your answer (max? store? check?) │
+         └─────────────────────────────────────────┘
+
+STEP 4 — Return answer
+```
+
+---
+
+## Concrete Example — Maximum Sum of K Consecutive Elements
+
+**Input:** `arr = [2, 1, 5, 1, 3, 2]`, `k = 3`
+**Output:** `9` (window `[5, 1, 3]`)
+
+```
+STEP 1 — Build first window [2, 1, 5]
+         windowSum = 2 + 1 + 5 = 8
+
+STEP 2 — maxSum = 8
+
+STEP 3 — Slide:
+
+   i = 3 → incoming = arr[3] = 1
+            outgoing = arr[3 - 3] = arr[0] = 2
+            windowSum = 8 + 1 - 2 = 7
+            maxSum = max(8, 7) = 8
+
+   i = 4 → incoming = arr[4] = 3
+            outgoing = arr[4 - 3] = arr[1] = 1
+            windowSum = 7 + 3 - 1 = 9
+            maxSum = max(8, 9) = 9
+
+   i = 5 → incoming = arr[5] = 2
+            outgoing = arr[5 - 3] = arr[2] = 5
+            windowSum = 9 + 2 - 5 = 6
+            maxSum = max(9, 6) = 9
+
+STEP 4 — return 9 ✅
+```
+
+---
+
+## What Changes Per Problem — The Only Variable Part
+
+The template is always the same. The only thing that changes is **what you track** inside the window:
+
+| Problem Type | What You Track | Add/Remove Logic |
+|---|---|---|
+| Max/Min sum | integer sum | `sum + incoming - outgoing` |
+| Average | integer sum → divide | same as above |
+| Max distinct chars | HashMap of frequencies | increment incoming key, decrement outgoing key, remove if zero |
+| Fixed window anagram | frequency array of size 26 | increment incoming char index, decrement outgoing char index |
+| Count of ones / condition | integer count | `count + incoming - outgoing` (if they are 1s) |
+
+---
+
+## The One Rule to Never Forget
+
+> **The outgoing element is always at index `i - k`, not `i - k + 1` or `i - 1`.**
+
+This trips people up. At the moment you process index `i` as incoming, the element that just fell outside the window is exactly `k` steps behind it.
+
+---
+
+## Your Practice Checklist for This Pattern
+
+Work these in order — same template, increasing complexity of what you track:
+
+1. Maximum sum of k elements ← start here, pure sum
+2. Average of all subarrays of size k ← same as above, just divide
+3. First negative number in every window of size k ← track a deque of negatives
+4. Count occurrences of anagram in a string ← track a frequency array
+
+Once you can do all four from memory, fixed window is locked in.
