@@ -1,0 +1,203 @@
+The Core Idea
+A frequency map is just the answer to one question:
+
+"how many times does each character appear?"
+
+s = "aabbc"
+
+frequency map = {
+    'a' → 2,
+    'b' → 2,
+    'c' → 1
+}
+That is it. You build that map, then you answer whatever the problem asks by reading from it.
+
+Building the Map — The One Pattern You Reuse Everywhere
+javaMap<Character, Integer> freq = new HashMap<>();
+
+for (char c : s.toCharArray()) {
+    freq.put(c, freq.getOrDefault(c, 0) + 1);
+}
+The key line is freq.getOrDefault(c, 0) + 1. It means:
+
+"get the current count for this character. if it does not exist yet, start from 0. then add 1."
+
+This is the only building block. Every problem below just uses this map differently.
+
+Problem 1 — Duplicate Characters
+Question: find all characters that appear more than once.
+s = "programming"
+duplicates = [r, g, m]
+javapublic List<Character> findDuplicates(String s) {
+    Map<Character, Integer> freq = new HashMap<>();
+
+    // build the map
+    for (char c : s.toCharArray()) {
+        freq.put(c, freq.getOrDefault(c, 0) + 1);
+    }
+
+    // read from the map — anything with count > 1 is a duplicate
+    List<Character> duplicates = new ArrayList<>();
+    for (Map.Entry<Character, Integer> entry : freq.entrySet()) {
+        if (entry.getValue() > 1) {
+            duplicates.add(entry.getKey());
+        }
+    }
+
+    return duplicates;
+}
+Trace on "programming":
+build map:
+p→1, r→2, o→1, g→2, a→1, m→2, i→1, n→1
+
+read map:
+r=2 → duplicate ✓
+g=2 → duplicate ✓
+m=2 → duplicate ✓
+
+return [r, g, m] ✅
+
+Problem 2 — First Non-Repeating Character
+Question: find the first character that appears exactly once.
+s = "aabbcd"
+answer = 'c'  (first char with count 1)
+javapublic char firstNonRepeating(String s) {
+
+    // STEP 1 — build frequency map
+    Map<Character, Integer> freq = new LinkedHashMap<>(); // LinkedHashMap preserves insertion order
+    for (char c : s.toCharArray()) {
+        freq.put(c, freq.getOrDefault(c, 0) + 1);
+    }
+
+    // STEP 2 — iterate in insertion order, return first with count 1
+    for (Map.Entry<Character, Integer> entry : freq.entrySet()) {
+        if (entry.getValue() == 1) {
+            return entry.getKey();
+        }
+    }
+
+    return '_'; // none found
+}
+Why LinkedHashMap and not HashMap?
+HashMap    — no guaranteed order. iterating it gives random order.
+LinkedHashMap — remembers the order you inserted keys.
+
+s = "aabbcd"
+
+HashMap iteration might give:  b, a, d, c  ← random, wrong answer
+LinkedHashMap iteration gives: a, b, c, d  ← insertion order, correct answer
+Trace on "aabbcd":
+build map (insertion order preserved):
+a→2, b→2, c→1, d→1
+
+read map in order:
+a=2 → skip
+b=2 → skip
+c=1 → first with count 1 ✓
+
+return 'c' ✅
+
+Problem 3 — Anagram Check
+Question: are two strings anagrams of each other?
+s = "listen"
+t = "silent"
+answer = true  (same characters, different order)
+Two strings are anagrams if and only if they have the exact same character frequencies.
+javapublic boolean isAnagram(String s, String t) {
+
+    // different lengths — impossible to be anagram
+    if (s.length() != t.length()) return false;
+
+    Map<Character, Integer> freq = new HashMap<>();
+
+    // build map FROM s — increment
+    for (char c : s.toCharArray()) {
+        freq.put(c, freq.getOrDefault(c, 0) + 1);
+    }
+
+    // tear down map WITH t — decrement
+    for (char c : t.toCharArray()) {
+        freq.put(c, freq.getOrDefault(c, 0) - 1);
+    }
+
+    // if any count is non-zero — they had different frequencies
+    for (int count : freq.values()) {
+        if (count != 0) return false;
+    }
+
+    return true;
+}
+Trace on "listen" and "silent":
+build from "listen":
+l→1, i→1, s→1, t→1, e→1, n→1
+
+tear down with "silent":
+s: l→1-1=0, i→1-1=0, l already done
+   s→1-1=0, i→0-1... wait let me retrace
+
+"listen" → l,i,s,t,e,n  → {l:1, i:1, s:1, t:1, e:1, n:1}
+"silent" → s,i,l,e,n,t  → subtract each:
+  s: {l:1, i:1, s:0, t:1, e:1, n:1}
+  i: {l:1, i:0, s:0, t:1, e:1, n:1}
+  l: {l:0, i:0, s:0, t:1, e:1, n:1}
+  e: {l:0, i:0, s:0, t:1, e:0, n:1}
+  n: {l:0, i:0, s:0, t:1, e:0, n:0}
+  t: {l:0, i:0, s:0, t:0, e:0, n:0}
+
+all zeros → return true ✅
+
+The int[26] Alternative — Faster for Lowercase Letters
+When the problem guarantees only lowercase letters (a-z), skip the HashMap entirely. Use a fixed array of size 26.
+javaint[] freq = new int[26];
+
+// 'a' maps to index 0
+// 'b' maps to index 1
+// 'z' maps to index 25
+// the trick: subtract 'a' to get the index
+
+for (char c : s.toCharArray()) {
+    freq[c - 'a']++;
+}
+The anagram check becomes:
+javapublic boolean isAnagram(String s, String t) {
+    if (s.length() != t.length()) return false;
+
+    int[] freq = new int[26];
+
+    for (int i = 0; i < s.length(); i++) {
+        freq[s.charAt(i) - 'a']++;  // increment for s
+        freq[t.charAt(i) - 'a']--;  // decrement for t
+    }
+
+    for (int count : freq) {
+        if (count != 0) return false;
+    }
+
+    return true;
+}
+c - 'a' works because characters are just numbers in Java:
+'a' = 97
+'b' = 98
+'c' = 99
+
+'a' - 'a' = 0   → index 0
+'b' - 'a' = 1   → index 1
+'c' - 'a' = 2   → index 2
+
+When to Use Which
+Input has only lowercase letters    → int[26] array — faster, cleaner
+Input has any characters            → HashMap
+Order of first appearance matters   → LinkedHashMap
+You need to check two strings       → build from one, tear down with other
+You need to find something specific → build the map, then loop and check
+
+The One Mental Model That Ties It All Together
+Every HashMap frequency problem is two steps:
+STEP 1 — BUILD
+  loop through the string
+  count every character into the map
+
+STEP 2 — READ
+  loop through the map
+  answer the question using the counts
+The build step never changes. Only what you do in the read step changes per problem. Once you see that, every new problem is just "what am I reading for?"Sonnet 4.6

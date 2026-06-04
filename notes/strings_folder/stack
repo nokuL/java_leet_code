@@ -1,0 +1,165 @@
+Stack Technique
+Deep dive — last in first out, and why that solves bracket problems perfectly
+
+The Thought Pattern (Before Writing Anything)
+Ask yourself these 3 questions when you see a stack problem:
+
+1
+Does the problem involve matching something that opened with something that closes?
+→ brackets, tags, function calls — anything that nests
+2
+Do I need to remember what I saw most recently?
+→ "what was the last opening bracket?" — stack remembers this perfectly
+3
+Does order matter and is it reversed?
+→ last thing pushed is the first thing needed — that is exactly LIFO
+Core insight — a stack is Last In First Out (LIFO). The last thing you pushed is the first thing you can pop. This makes it perfect for anything that nests or needs to be processed in reverse order.
+
+The Mental Model
+Think of a stack of plates. You add to the top. You take from the top. You cannot reach the bottom without removing everything above it.
+
+after push(1) push(2) push(3)
+
+1
+2
+3 ← top
+push(1) → stack: [1]
+push(2) → stack: [1,2]
+push(3) → stack: [1,2,3]
+pop() → returns 3, stack: [1,2]
+peek() → returns 2, stack unchanged
+Stack in Java — The 4 Methods You Use
+Stack<Character> stack = new Stack<>();
+
+stack.push('(');      // add to top
+stack.pop();          // remove and return top — throws if empty
+stack.peek();         // look at top without removing — throws if empty
+stack.isEmpty();      // true if nothing in stack — always check before pop/peek
+Always call stack.isEmpty() before pop() or peek(). Calling either on an empty stack throws EmptyStackException. This is the most common stack bug in interviews.
+
+Problem 1 — Valid Parentheses (Entelect asked this)
+Given a string of brackets, return true if every opening bracket has a matching closing bracket in the correct order.
+
+Input:  "({[]})"  → true
+Input:  "([)]"    → false  ← wrong order
+Input:  "{[]"     → false  ← unclosed bracket
+public boolean isValid(String s) {
+    Stack<Character> stack = new Stack<>();
+
+    for (char c : s.toCharArray()) {
+
+        if (c == '(' || c == '{' || c == '[') {
+            stack.push(c);                     // opening — remember it
+
+        } else {
+            if (stack.isEmpty()) return false; // closing with nothing open
+
+            char top = stack.pop();
+
+            if (c == ')' && top != '(') return false;
+            if (c == '}' && top != '{') return false;
+            if (c == ']' && top != '[') return false;
+        }
+    }
+
+    return stack.isEmpty(); // anything left unclosed → false
+}
+Trace — "({[]})"
+c='(' → opening → push '(' stack: [(]
+c='{' → opening → push '{' stack: [(, {]
+c='[' → opening → push '[' stack: [(, {, []
+c=']' → closing → pop '[' ']' matches '[' ✓ stack: [(, {]
+c='}' → closing → pop '{' '}' matches '{' ✓ stack: [(]
+c=')' → closing → pop '(' ')' matches '(' ✓ stack: []
+stack.isEmpty() → true ✅
+Trace — "([)]"
+c='(' → push '(' stack: [(]
+c='[' → push '[' stack: [(, []
+c=')' → pop '[' ')' matches '[' ? ✗
+return false ✅
+Trace — "{[]" (unclosed)
+c='{' → push '{' stack: [{]
+c='[' → push '[' stack: [{, []
+c=']' → pop '[' ']' matches '[' ✓ stack: [{]
+loop ends — stack not empty → return false ✅
+Problem 2 — Minimum Stack (get min in O(1))
+Design a stack that supports push, pop, and getMin — all in O(1) time.
+
+The trick: maintain a second stack that only tracks minimums.
+
+class MinStack {
+    Stack<Integer> stack    = new Stack<>();
+    Stack<Integer> minStack = new Stack<>(); // tracks min at each level
+
+    public void push(int val) {
+        stack.push(val);
+        // push to minStack only if val is <= current min
+        if (minStack.isEmpty() || val <= minStack.peek()) {
+            minStack.push(val);
+        }
+    }
+
+    public void pop() {
+        int val = stack.pop();
+        // if we're removing the current min, remove from minStack too
+        if (val == minStack.peek()) {
+            minStack.pop();
+        }
+    }
+
+    public int getMin() {
+        return minStack.peek(); // top of minStack is always current min
+    }
+}
+Trace — push(5) push(3) push(7) push(2) pop()
+push(5): stack=[5] minStack=[5] getMin=5
+push(3): stack=[5,3] minStack=[5,3] getMin=3 ← 3 <= 5
+push(7): stack=[5,3,7] minStack=[5,3] getMin=3 ← 7 > 3, skip
+push(2): stack=[5,3,7,2] minStack=[5,3,2] getMin=2 ← 2 <= 3
+pop(): removes 2 minStack=[5,3] getMin=3 ← 2==minStack.peek(), pop both
+Problem 3 — Reverse a String Using a Stack
+Push every character onto the stack. Pop them all off. LIFO gives you reverse order.
+
+public String reverse(String s) {
+    Stack<Character> stack = new Stack<>();
+
+    // push every character
+    for (char c : s.toCharArray()) {
+        stack.push(c);
+    }
+
+    // pop every character — comes out reversed
+    StringBuilder sb = new StringBuilder();
+    while (!stack.isEmpty()) {
+        sb.append(stack.pop());
+    }
+
+    return sb.toString();
+}
+Trace — "hello"
+push: h,e,l,l,o → stack top→bottom: [o,l,l,e,h]
+pop: o,l,l,e,h → "olleh" ✅
+What Changes Per Problem — The Only Variable Part
+Problem	What you push	When you pop	What you check
+Valid parentheses	opening brackets	on closing bracket	does popped match current?
+Min stack	values + minimums	on pop	is popped value == current min?
+Reverse string	every character	until empty	nothing — just pop order
+Next greater element	indices waiting	when greater found	is current > stack top?
+Balanced tags (HTML/XML)	opening tags	on closing tag	does popped tag match?
+The Two Rules to Never Forget
+Rule 1 — always check stack.isEmpty() before pop() or peek(). A closing bracket with an empty stack means invalid input — return false immediately.
+
+Rule 2 — at the end of the loop, return stack.isEmpty() not true. If unclosed brackets remain on the stack the answer is false even though no mismatch was found.
+
+Stack vs Other Techniques — Know the Difference
+Stack	Queue	Two pointer
+Order	LIFO — last in first out	FIFO — first in first out	no storage — just pointers
+Use case	matching, nesting, undo	BFS, scheduling	palindrome, sum pairs
+Signal phrase	"valid brackets", "matching", "most recent"	"level order", "process in order"	"find a pair", "palindrome"
+Your Practice Checklist
+Valid parentheses — start here, pure stack push/pop matching
+Reverse string using stack — builds push/pop muscle memory
+Min stack — teaches the two-stack pattern
+Valid parentheses with return position — return index of first invalid char
+Next greater element — harder, monotonic stack pattern
+Once you can write valid parentheses and min stack from memory, stack is locked in.

@@ -18,27 +18,22 @@ public class LongestCommonPrefix {
     // and move to the next element
     //
 
-
-    public static String longestCommonPrefix(String [] inputString){
-
+    public static String longestCommonPrefix(String[] inputString) {
         String prefix = inputString[0];
-        for(int i = 1; i < inputString.length; i++){
+        for (int i = 1; i < inputString.length; i++) {
             String currentString = inputString[i];
             int left = 0;
             int minLength = Math.min(prefix.length(), currentString.length());
-            while(left < minLength ){
-                if(prefix.charAt(left) == currentString.charAt(left)){
+            while (left < minLength) {
+                if (prefix.charAt(left) == currentString.charAt(left)) {
                     left++;
-                }else{
+                } else {
                     break;
                 }
-                prefix = prefix.substring(0, left+1);
-
-
             }
+            prefix = prefix.substring(0, left); // ✅ outside the while, and left not left+1
             if (prefix.isEmpty()) return "";
         }
-        return  prefix;
-
+        return prefix;
     }
 }

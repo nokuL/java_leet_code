@@ -1,0 +1,15 @@
+Here are the 7 concepts and everything under each one:
+1. API Design
+REST, gRPC, idempotency, pagination, versioning, retries, error handling
+2. Databases
+SQL, indexing, transactions, query tuning, replication, partitioning, consistency tradeoffs
+3. Caching
+Redis, cache invalidation, TTL strategy, read-through vs write-through, hot keys, consistency risks
+4. Async Systems
+Queues, Kafka, retries, backoff, dead letter queues, idempotent consumers, eventual consistency
+5. Distributed Systems Basics
+Load balancing, sharding, leader-follower replication, service discovery, fault tolerance, CAP tradeoffs
+6. Reliability and Observability
+Logs, metrics, tracing, alerts, SLOs, incident handling, debugging production issues
+7. Architecture and Tradeoffs
+Monolith vs microservices, consistency vs availability, performance vs cost, simplicity vs flexibility

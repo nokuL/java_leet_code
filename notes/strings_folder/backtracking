@@ -1,0 +1,362 @@
+## The Core Idea
+
+Backtracking is **controlled brute force**. You build a solution one piece at a time, and the moment a path cannot possibly lead to a valid answer, you **undo the last choice and try a different one**.
+
+The name comes from exactly that — you go forward, hit a dead end, then backtrack to where you were and try again.
+
+---
+
+## The Mental Model
+
+Think of a maze:
+
+```
+Start
+  ↓
+Choice A → Choice A1 → dead end → backtrack
+         → Choice A2 → dead end → backtrack
+Choice B → Choice B1 → dead end → backtrack
+         → Choice B2 → SOLUTION ✓
+```
+
+You never reset to the beginning. You only undo the **last decision** and try the next option from that same point.
+
+---
+
+## The Generic Template — Memorise This
+
+Every backtracking problem uses this exact shape:
+
+```java
+void backtrack(/* current state */, /* choices available */, List<...> result) {
+
+    // BASE CASE — did we reach a complete solution?
+    if (solutionIsComplete()) {
+        result.add(/* copy of current solution */);
+        return;
+    }
+
+    // EXPLORE — try every available choice
+    for (choice : availableChoices) {
+
+        // 1. MAKE the choice
+        makeChoice(choice);
+
+        // 2. RECURSE — go deeper with this choice made
+        backtrack(newState, remainingChoices, result);
+
+        // 3. UNDO the choice — backtrack
+        undoChoice(choice);
+    }
+}
+```
+
+The three lines inside the loop — make, recurse, undo — are the heartbeat of every backtracking solution. You will write them hundreds of times.
+
+---
+
+## Problem 1 — All Permutations of a String
+
+**Question:** given `"abc"`, print all possible arrangements.
+
+```
+output: ["abc", "acb", "bac", "bca", "cab", "cba"]
+```
+
+**How to think about it:**
+
+```
+position 0 can be: a, b, or c
+  if position 0 = a:
+    position 1 can be: b or c
+      if position 1 = b:
+        position 2 must be: c → "abc" ✓
+      if position 1 = c:
+        position 2 must be: b → "acb" ✓
+  if position 0 = b:
+    position 1 can be: a or c
+      ...and so on
+```
+
+```java
+public List<String> permutations(String s) {
+    List<String> result = new ArrayList<>();
+    boolean[] used = new boolean[s.length()]; // tracks which chars are used
+    backtrack(s, used, new StringBuilder(), result);
+    return result;
+}
+
+private void backtrack(String s, boolean[] used,
+                       StringBuilder current, List<String> result) {
+
+    // BASE CASE — current has all characters
+    if (current.length() == s.length()) {
+        result.add(current.toString()); // copy and save
+        return;
+    }
+
+    // EXPLORE — try every character
+    for (int i = 0; i < s.length(); i++) {
+
+        if (used[i]) continue; // already in current path — skip
+
+        // 1. MAKE the choice
+        used[i] = true;
+        current.append(s.charAt(i));
+
+        // 2. RECURSE
+        backtrack(s, used, current, result);
+
+        // 3. UNDO — backtrack
+        used[i] = false;
+        current.deleteCharAt(current.length() - 1);
+    }
+}
+```
+
+**Trace on `"abc"`:**
+
+```
+start: current=""  used=[F,F,F]
+
+try i=0 ('a'): current="a"  used=[T,F,F]
+  try i=1 ('b'): current="ab"  used=[T,T,F]
+    try i=2 ('c'): current="abc"  used=[T,T,T]
+      length==3 → add "abc" ✓
+    undo i=2: current="ab"  used=[T,T,F]
+  undo i=1: current="a"  used=[T,F,F]
+  try i=2 ('c'): current="ac"  used=[T,F,T]
+    try i=1 ('b'): current="acb"  used=[T,T,T]
+      length==3 → add "acb" ✓
+    undo i=1: current="ac"  used=[T,F,T]
+  undo i=2: current="a"  used=[T,F,F]
+undo i=0: current=""  used=[F,F,F]
+
+try i=1 ('b'): current="b" ... → "bac", "bca"
+try i=2 ('c'): current="c" ... → "cab", "cba"
+
+result = ["abc", "acb", "bac", "bca", "cab", "cba"] ✅
+```
+
+---
+
+## Problem 2 — All Subsets of a String
+
+**Question:** given `"abc"`, return all possible subsets including empty.
+
+```
+output: ["", "a", "ab", "abc", "ac", "b", "bc", "c"]
+```
+
+**How to think about it:**
+
+For each character you have exactly two choices — include it or skip it.
+
+```
+           ""
+          /    \
+        "a"    ""
+       /   \  /  \
+    "ab"  "a" "b" ""
+    ...
+```
+
+```java
+public List<String> subsets(String s) {
+    List<String> result = new ArrayList<>();
+    backtrack(s, 0, new StringBuilder(), result);
+    return result;
+}
+
+private void backtrack(String s, int start,
+                       StringBuilder current, List<String> result) {
+
+    // BASE CASE — record current subset at every node, not just leaves
+    result.add(current.toString());
+
+    // EXPLORE — try adding each remaining character
+    for (int i = start; i < s.length(); i++) {
+
+        // 1. MAKE the choice — include s[i]
+        current.append(s.charAt(i));
+
+        // 2. RECURSE — move to next position
+        backtrack(s, i + 1, current, result);
+
+        // 3. UNDO — exclude s[i]
+        current.deleteCharAt(current.length() - 1);
+    }
+}
+```
+
+**Key difference from permutations:** the `start` parameter. It ensures you only look forward — this prevents `"ab"` and `"ba"` from both appearing (they are the same subset).
+
+**Trace on `"abc"`:**
+```
+call(start=0, current="")   → add ""
+  include 'a' → current="a"
+  call(start=1, current="a") → add "a"
+    include 'b' → current="ab"
+    call(start=2, current="ab") → add "ab"
+      include 'c' → current="abc"
+      call(start=3, current="abc") → add "abc", loop ends
+      undo → current="ab"
+    undo → current="a"
+    include 'c' → current="ac"
+    call(start=3, current="ac") → add "ac", loop ends
+    undo → current="a"
+  undo → current=""
+  include 'b' → current="b"
+  call(start=2, current="b") → add "b"
+    include 'c' → current="bc"
+    call(start=3, current="bc") → add "bc", loop ends
+    undo → current="b"
+  undo → current=""
+  include 'c' → current="c"
+  call(start=3, current="c") → add "c", loop ends
+  undo → current=""
+
+result = ["", "a", "ab", "abc", "ac", "b", "bc", "c"] ✅
+```
+
+---
+
+## Problem 3 — Valid Parentheses Generation
+
+**Question:** given n=2, generate all valid combinations of 2 pairs of brackets.
+
+```
+output: ["(())", "()()"]
+```
+
+This is backtracking with **constraints** — not every choice is valid.
+
+```java
+public List<String> generateParentheses(int n) {
+    List<String> result = new ArrayList<>();
+    backtrack(n, 0, 0, new StringBuilder(), result);
+    return result;
+}
+
+private void backtrack(int n, int open, int close,
+                       StringBuilder current, List<String> result) {
+
+    // BASE CASE — used all n pairs
+    if (current.length() == 2 * n) {
+        result.add(current.toString());
+        return;
+    }
+
+    // CHOICE 1 — add '(' if we still have opening brackets left
+    if (open < n) {
+        current.append('(');
+        backtrack(n, open + 1, close, current, result);
+        current.deleteCharAt(current.length() - 1); // undo
+    }
+
+    // CHOICE 2 — add ')' only if it won't exceed open brackets
+    if (close < open) {
+        current.append(')');
+        backtrack(n, open, close + 1, current, result);
+        current.deleteCharAt(current.length() - 1); // undo
+    }
+}
+```
+
+**Trace on n=2:**
+```
+current=""  open=0 close=0
+  add '(' → current="("  open=1
+    add '(' → current="(("  open=2
+      add ')' → current="(()"  close=1
+        add ')' → current="(())"  close=2
+          length=4 → add "(())" ✓
+        undo → current="(()"
+      undo → current="(("
+    undo → current="("
+    add ')' → current="()"  close=1
+      add '(' → current="()("  open=2
+        add ')' → current="()()"  close=2
+          length=4 → add "()()" ✓
+        undo
+      undo
+    undo
+  undo
+
+result = ["(())", "()()"] ✅
+```
+
+---
+
+## The Three Patterns Side by Side
+
+```
+PERMUTATIONS          SUBSETS               CONSTRAINED
+all orderings         all combinations      valid only
+
+used[] array          start index           if condition
+to avoid reuse        to avoid repeats      before recursing
+
+add at BASE CASE      add at EVERY NODE     add at BASE CASE
+(when full)           (immediately)         (when full)
+```
+
+---
+
+## Time Complexity — Be Ready to Say This
+
+```
+Permutations  → O(n × n!)   — n! permutations, each takes O(n) to copy
+Subsets       → O(n × 2ⁿ)   — 2ⁿ subsets, each takes O(n) to copy
+Parentheses   → O(4ⁿ / √n)  — Catalan number, just say "exponential"
+```
+
+In interviews just say: "backtracking is exponential time because we explore all possibilities, but pruning cuts branches early so it is faster in practice."
+
+---
+
+## The Four Questions to Ask Before Writing Any Backtracking Solution
+
+```
+1. What is one "choice" at each step?
+   → permutations: which character to place next
+   → subsets: include this character or not
+
+2. What is the base case?
+   → permutations: current length == s.length()
+   → subsets: no more characters to consider
+
+3. What constraint prunes invalid paths?
+   → permutations: skip used characters
+   → parentheses: never add ')' if close >= open
+
+4. Do I need a copy when I add to result?
+   → StringBuilder: yes — current.toString()
+   → primitive: no — add directly
+```
+
+---
+
+## The One Rule to Never Forget
+
+> Every `make choice` must have an exact matching `undo choice` after the recursive call. If you make and do not undo, the state is corrupted for every other branch. Make and undo are always a pair.
+
+```java
+current.append(c);              // make
+backtrack(...);                 // recurse
+current.deleteCharAt(...);      // undo ← must always exist
+```
+
+---
+
+## Your Practice Checklist
+
+Work these in order — same template, increasing constraint complexity:
+
+1. All permutations of a string — pure backtracking, no constraints
+2. All subsets of a string — teaches the start index pattern
+3. Generate valid parentheses — introduces pruning with constraints
+4. Letter combinations of a phone number — maps digits to letters, same template
+5. Word search in a grid — backtracking on a 2D grid, adds visited tracking
+
+Once you can write permutations and subsets from memory, the template is locked in. Every other backtracking problem is just a variation of what the choices are and what the constraints are.

@@ -1,0 +1,9 @@
+1. Stack — bracket/parenthesis matching, valid parentheses, next greater element. Entelect literally asked this in a recent interview.
+2. HashMap / Frequency Map — anagram check, first non-repeating character, duplicate characters, any problem where you need to count occurrences of characters.
+3. Two Pointer (inward) — palindrome check, reverse string, valid palindrome II, two sum on sorted input. You already have notes on this.
+4. Sliding Window (variable) — longest substring without repeating characters, longest substring with at most k distinct characters, minimum window substring. You already have notes on this.
+5. Sliding Window (fixed) — anagram occurrences in a string, any fixed-size substring problem. You already have notes on this.
+6. int[26] Frequency Array — faster alternative to HashMap when input is only lowercase letters. Fixed size, O(1) space, cleaner code for alphabet-based problems.
+7. StringBuilder — not an algorithm but a Java-specific must-know. Explains why string concatenation in a loop is O(n²) and how StringBuilder fixes it to O(n).
+8. Sort + Compare — simplest anagram check. Sort both strings, compare. O(n log n) but trivial to write under pressure.
+9. Concatenation Trick — string rotation check. If s2 is a rotation of s1, then s2 is always a substring of s1 + s1. One line, elegant, interviewers love it.

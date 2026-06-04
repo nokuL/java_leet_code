@@ -1,0 +1,135 @@
+## The Core Idea
+
+Every time you use `+` to concatenate strings in Java, Java creates a **brand new String object** in memory. It does not add to the existing one — it throws the old one away and builds a new one from scratch.
+
+This is because Strings in Java are **immutable** — once created, they cannot be changed.
+
+---
+
+## Why That Makes a Loop Expensive
+
+```java
+String result = "";
+result = result + "a";   // creates new String "a"
+result = result + "b";   // throws away "a", creates new String "ab"
+result = result + "c";   // throws away "ab", creates new String "abc"
+result = result + "d";   // throws away "abc", creates new String "abcd"
+```
+
+Each step copies everything from before, then adds one character. So:
+
+```
+step 1 → copy 0 chars + add "a"   = 1 operation
+step 2 → copy 1 char  + add "b"   = 2 operations
+step 3 → copy 2 chars + add "c"   = 3 operations
+step 4 → copy 3 chars + add "d"   = 4 operations
+
+total = 1 + 2 + 3 + 4 = 10 operations for 4 characters
+```
+
+For n characters that becomes `1 + 2 + 3 + ... + n` which is **O(n²)**.
+
+At small scale you never notice. At 10,000 characters in a loop — your code crawls.
+
+---
+
+## StringBuilder Fixes This
+
+`StringBuilder` is a **mutable** character buffer. It does not create a new object on every append — it writes into the same memory, expanding it only when needed.
+
+```java
+StringBuilder sb = new StringBuilder();
+sb.append("a");   // writes 'a' into buffer
+sb.append("b");   // writes 'b' next to it — no copy
+sb.append("c");   // writes 'c' next to it — no copy
+sb.append("d");   // writes 'd' next to it — no copy
+
+String result = sb.toString(); // convert to String once at the end
+```
+
+Each append is one operation regardless of how long the string already is. That is **O(1) per append**, so the whole loop is **O(n)**.
+
+---
+
+## Side by Side
+
+```java
+// WRONG — O(n²) — new String object created every iteration
+String result = "";
+for (String word : words) {
+    result += word;
+}
+
+// CORRECT — O(n) — one buffer, one object, append in place
+StringBuilder sb = new StringBuilder();
+for (String word : words) {
+    sb.append(word);
+}
+String result = sb.toString();
+```
+
+---
+
+## The Memory Picture
+
+```
+String concatenation in a loop:
+
+step 1:  [a]
+step 2:  [a][b]          ← "a" copied again + "b" added
+step 3:  [a][b][c]       ← "ab" copied again + "c" added
+step 4:  [a][b][c][d]    ← "abc" copied again + "d" added
+
+Each step re-copies everything. Old objects become garbage.
+
+
+StringBuilder:
+
+buffer:  [a]             ← append "a"
+buffer:  [a][b]          ← append "b" in place
+buffer:  [a][b][c]       ← append "c" in place
+buffer:  [a][b][c][d]    ← append "d" in place
+
+Same object the whole time. Nothing copied. Nothing thrown away.
+```
+
+---
+
+## Useful StringBuilder Methods to Know
+
+```java
+StringBuilder sb = new StringBuilder();
+
+sb.append("hello");        // add to the end
+sb.insert(0, "say ");      // insert at a position
+sb.reverse();              // reverse the contents — useful in interviews
+sb.deleteCharAt(2);        // remove a character at index
+sb.charAt(0);              // read a character
+sb.length();               // current length
+sb.toString();             // convert to String when done
+```
+
+`sb.reverse()` comes up in palindrome problems — instead of writing your own reverse logic you can do:
+
+```java
+String reversed = new StringBuilder(s).reverse().toString();
+```
+
+---
+
+## The Interview Explanation
+
+If you write string concatenation in a loop and the interviewer asks about performance, say:
+
+> "String concatenation in a loop is O(n²) in Java because strings are immutable — each `+` creates a new object and copies everything from before. I'd use StringBuilder instead, which appends in place on the same mutable buffer, making the whole loop O(n) with a single `toString()` call at the end."
+
+That answer shows you understand immutability, time complexity, and Java internals — three things in one sentence.
+
+---
+
+## The One Rule
+
+```
+Any time you build a string inside a loop → use StringBuilder, never +
+Outside a loop, one or two concatenations → + is fine, readable, no issue
+```
