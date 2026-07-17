@@ -1,5 +1,6 @@
 package Strings;
 import java.util.HashMap;
+import java.util.Optional;
 
 public class HighestFrequencyCharacter {
 
@@ -20,23 +21,23 @@ public class HighestFrequencyCharacter {
     //find the corresponding Key in the hashmap
 
 
-    public  Character highestFreq(String input){
+    public Optional<Character> highestFreq(String input){
 
         HashMap<Character, Integer> hashMap = new HashMap<>();
+        int max = 0;
+        char maxChar = input.charAt(0);
          for(char c : input.toCharArray()){
-             hashMap.merge(c, 1 , Integer::sum);
-         }
-         int max =0;
-         for(int i : hashMap.values()){
-             max = Math.max(max, i);
-         }
-         for(char c: input.toCharArray()){
-             if(hashMap.get(c)== max){
-                 return c;
+             int newFreq = hashMap.getOrDefault(c, 0)+1;
+             hashMap.put(c, newFreq);
+             if(newFreq > max){
+                 max = newFreq;
+                 maxChar = c;
+
              }
          }
 
-   return  null;
+
+   return  Optional.of(maxChar);
     }
 
 

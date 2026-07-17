@@ -7,18 +7,21 @@ public class OrderProcessingCorrect {
     private final IPaymentService paymentService;
     private final INotificationService notificationService;
     private final IOrderRepository orderRepository;
+    private final TestService testService = new TestService(" ", " ");
 
     public OrderProcessingCorrect(ITotalCalculator totalCalculator,
                                   DiscountFactory discountFactory,
                                   IPaymentService paymentService,
                                   INotificationService notificationService,
-                                  IOrderRepository orderRepository) {
+                                  IOrderRepository orderRepository, TestService testService) {
         this.totalCalculator = totalCalculator;
         this.discountFactory = discountFactory;
         this.paymentService = paymentService;
         this.notificationService = notificationService;
         this.orderRepository = orderRepository;
     }
+
+    //dependency
 
     public void process(Order order) {
         double total = totalCalculator.totalCalculator(order);

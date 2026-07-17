@@ -22,11 +22,11 @@ public class AnagramCheck {
         if (arrayA.length != arrayB.length) return false;
         for(int i = 0; i< arrayA.length ; i++){
 
-                hashMap.put(arrayA[i], hashMap.getOrDefault(arrayA[i], 0)+1);
+                hashMap.merge(arrayA[i], 1, Integer::sum);
 
         }
         for(int i = 0; i< arrayB.length; i++ ){
-                hashMap.put(arrayB[i], hashMap.getOrDefault(arrayB[i], 0)-1);
+                hashMap.merge(arrayB[i], -1, Integer::sum);
 
         }
 
